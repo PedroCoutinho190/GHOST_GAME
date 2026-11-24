@@ -1,0 +1,28 @@
+/** Controla o ciclo do programa: instrucoes -> partida -> Game Over -> reiniciar ou sair */
+class Main {
+    function void main() {
+        var GhostGame game;
+        var int result;           // 0 = ESC, 1 = fantasma venceu, 2 = pessoa venceu
+        var boolean playAgain;
+
+        do InitPlayers.showControls();
+
+        let playAgain = true;
+        while (playAgain) {
+            do Screen.clearScreen();
+            let game = GhostGame.new();   // recria jogadores, relogios e obstaculos do zero
+            let result = game.run();
+            do game.dispose();            // libera a memoria antes de reiniciar
+
+            if (result = 0) {
+                let playAgain = false;    // ESC durante a partida: finaliza direto
+            } else {
+                do GameOver.show(result);
+                let playAgain = Restart.ask();
+            }
+        }
+
+        do Restart.finish();
+        return;
+    }
+}

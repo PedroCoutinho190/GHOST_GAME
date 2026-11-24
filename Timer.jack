@@ -1,0 +1,41 @@
+/** Logica de reinicio e finalizacao do jogo */
+class Restart {
+
+   /** Pergunta se querem jogar de novo. ENTER = true (reinicia), ESC = false (finaliza) */
+   function boolean ask() {
+      var char key;
+      var boolean decided, again;
+
+      do GameOver.printCentered(13, "ENTER = jogar novamente");
+      do GameOver.printCentered(15, "ESC = sair");
+
+      // espera soltar qualquer tecla que ainda esteja pressionada da partida
+      while (~(Keyboard.keyPressed() = 0)) { do Sys.wait(10); }
+
+      let decided = false;
+      let again = false;
+      while (~decided) {
+         let key = Keyboard.keyPressed();
+         if (key = 128) {            // ENTER
+            let again = true;
+            let decided = true;
+         }
+         if (key = 140) {            // ESC
+            let again = false;
+            let decided = true;
+         }
+      }
+
+      // espera soltar a tecla para nao vazar para a proxima partida
+      while (~(Keyboard.keyPressed() = 0)) { do Sys.wait(10); }
+      return again;
+   }
+
+   /** Tela final: encerra o jogo */
+   function void finish() {
+      do Screen.clearScreen();
+      do GameOver.printCentered(10, "Obrigado por jogar!");
+      do GameOver.printCentered(12, "Jogo finalizado.");
+      return;
+   }
+}

@@ -1,0 +1,34 @@
+/** Logica de inicializacao dos jogadores: posicoes iniciais e tela de controles */
+class InitPlayers {
+
+   /** Cria o Jogador 1 (fantasma) na posicao inicial, parado e ja desenhado */
+   function Ghost createGhost() {
+      // (16, 32) = coluna 1, linha 1 do mapa (canto superior esquerdo, chao livre)
+      return Ghost.new(16, 32);
+   }
+
+   /** Cria o Jogador 2 (pessoa) na posicao inicial, parada e ja desenhada */
+   function Player createPlayer() {
+      // (480, 224) = coluna 30, linha 13 do mapa (canto inferior direito, chao livre)
+      return Player.new(480, 224);
+   }
+
+   /** Mostra as instrucoes de cada jogador e espera ENTER para comecar */
+   function void showControls() {
+      do Screen.clearScreen();
+      do GameOver.printCentered(2, "=== GHOST MULTIPLAYER ===");
+      do GameOver.printCentered(5, "Jogador 1 - FANTASMA");
+      do GameOver.printCentered(6, "Setas = mover    ; = parar");
+      do GameOver.printCentered(8, "Jogador 2 - PESSOA");
+      do GameOver.printCentered(9, "W A S D = mover    E = parar (maiusculas)");
+      do GameOver.printCentered(11, "Fase 1: a pessoa tem 3s para fugir");
+      do GameOver.printCentered(12, "Fase 2: o fantasma tem 7s para pegar a pessoa");
+      do GameOver.printCentered(14, "ESC = sair durante o jogo");
+      do GameOver.printCentered(17, "Pressione ENTER para comecar");
+
+      // espera ENTER (128) e depois a tecla ser solta
+      while (~(Keyboard.keyPressed() = 128)) { do Sys.wait(10); }
+      while (~(Keyboard.keyPressed() = 0)) { do Sys.wait(10); }
+      return;
+   }
+}

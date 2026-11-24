@@ -1,0 +1,167 @@
+/** Controla o fluxo principal, entradas, colisoes e relogios do jogo */
+class GhostGame {
+   field Player player;      // personagem controlado pelo Jogador 2 (pessoa)
+   field Ghost ghost;        // personagem controlado pelo Jogador 1 (fantasma)
+   field Timer timerprep;    // relogio regressivo da fase de preparacao (fuga)
+   field Timer timergame;    // relogio regressivo da partida principal
+   field Map map;            // mapa com paredes e corredores
+   field Random random;      // gerador de numeros pseudoaleatorios
+
+   /** Construtor do jogo: desenha o mapa e instancia personagens e relogios */
+   constructor GhostGame new() {
+      // O mapa vem primeiro: draw() limpa a tela, entao tudo o resto e desenhado depois dele
+      let map = Map.new();
+      do map.draw();
+      let ghost = InitPlayers.createGhost();
+      let player = InitPlayers.createPlayer();
+      let timerprep = Timer.new(3, 50, 0, 2);  // 3 segundos de preparacao, atualiza a cada 50ms, linha 0, coluna 2
+      let timergame = Timer.new(7, 50, 0, 25); // 7 segundos de partida, atualiza a cada 50ms, linha 0, coluna 25
+      let random = Random.new(19);
+      return this;
+   }
+
+   /** Libera toda a memoria alocada pelos objetos do jogo */
+   method void dispose() {
+      do ghost.dispose();
+      do player.dispose();
+      do timerprep.dispose();
+      do timergame.dispose();
+      do map.dispose();
+      do random.dispose();
+      do Memory.deAlloc(this);
+      return;
+   }
+
+   /** Le a tecla pressionada e atualiza a direcao independente de cada jogador */
+   method void inputkey(char key) {
+      if (key = 59)  { do ghost.setDirection(0); }   // tecla ';' (parar fantasma)
+      if (key = 131) { do ghost.setDirection(1); }   // seta para cima
+      if (key = 133) { do ghost.setDirection(2); }   // seta para baixo
+      if (key = 130) { do ghost.setDirection(3); }   // seta para esquerda
+      if (key = 132) { do ghost.setDirection(4); }   // seta para direita
+      if (key = 87)  { do player.setDirection(1); }  // tecla 'W' (cima)
+      if (key = 83)  { do player.setDirection(2); }  // tecla 'S' (baixo)
+      if (key = 65)  { do player.setDirection(3); }  // tecla 'A' (esquerda)
+      if (key = 68)  { do player.setDirection(4); }  // tecla 'D' (direita)
+      if (key = 69)  { do player.setDirection(0); }  // tecla 'E' (parar pessoa)
+      return;
+   }
+
+   /** Verifica colisao retangular (AABB) entre o player e o ghost */
+   method boolean checkCollision() {
+      var int playerX, playerY, playerSize;
+      var int ghostX, ghostY, ghostSize;
+
+      let playerX = player.getX();
+      let playerY = player.getY();
+      let playerSize = player.getSize();
+
+      let ghostX = ghost.getX();
+      let ghostY = ghost.getY();
+      let ghostSize = ghost.getSize();
+
+      // Testa sobreposicao nos eixos X e Y
+      if ((playerX < (ghostX + ghostSize)) &
+          ((playerX + playerSize) > ghostX) &
+          (playerY < (ghostY + ghostSize)) &
+          ((playerY + playerSize) > ghostY)) {
+          return true; // colisao detectada
+      }
+      return false; // sem colisao
+   }
+
+   /** Valida se o proximo passo (16 px) na direcao informada esta livre de paredes */
+   method boolean canMove(int curX, int curY, int dir) {
+      var int col, row;
+
+      if (dir = 0) { // sem movimento
+         return false;
+      }
+      let col = curX / 16;
+      let row = (curY / 16) - 1;   // a faixa y = 0..15 e o HUD, o mapa comeca na linha de pixels 16
+      if (dir = 1) { let row = row - 1; }   // cima
+      if (dir = 2) { let row = row + 1; }   // baixo
+      if (dir = 3) { let col = col - 1; }   // esquerda
+      if (dir = 4) { let col = col + 1; }   // direita
+      return ~(map.isWall(col, row));
+   }
+
+   /** Move o fantasma se o caminho estiver livre; se bateu na parede, para */
+   method void moveGhost() {
+      if (canMove(ghost.getX(), ghost.getY(), ghost.getDirection())) {
+         do ghost.move();
+      } else {
+         do ghost.setDirection(0);
+      }
+      return;
+   }
+
+   /** Move a pessoa se o caminho estiver livre; se bateu na parede, para */
+   method void movePlayer() {
+      if (canMove(player.getX(), player.getY(), player.getDirection())) {
+         do player.move();
+      } else {
+         do player.setDirection(0);
+      }
+      return;
+   }
+
+   /**
+    * Executa o loop principal: captura teclas, atualiza relogios e movimenta personagens.
+    * Retorna: 0 = ESC, 1 = fantasma pegou a pessoa, 2 = tempo acabou
+    */
+   method int run() {
+      var char key;     // tecla pressionada no ciclo atual
+      var boolean exit; // bandeira de encerramento do loop
+      var int result;   // resultado da partida
+
+      let exit = false;
+      while (~exit) {
+         // Encerra se a tecla ESC (codigo 140) for pressionada
+         let key = Keyboard.keyPressed();
+         if (key = 140) {
+            let exit = true;
+         }
+
+         // Atualiza a direcao dos jogadores
+         do inputkey(key);
+
+         if (~(timerprep.isFinished())) {
+            // Fase 1: apenas a pessoa se move durante o tempo de fuga
+            do timerprep.tick();
+            do movePlayer();
+         } else {
+            // Fase 2: ambos se movem. A colisao e testada depois de CADA movimento,
+            // senao os dois poderiam trocar de casa no mesmo ciclo sem se encontrar.
+            do timergame.tick();
+            do moveGhost();
+            if (checkCollision()) {
+               let exit = true;
+            }
+            if (~exit) {
+               do movePlayer();
+            }
+         }
+         if (checkCollision()) {
+            let exit = true; // fantasma encostou na pessoa
+         }
+
+         do Sys.wait(50); // aguarda 50ms por ciclo (20 ciclos = 1 segundo)
+         if (timergame.isFinished()) {
+            let exit = true; // encerra o loop se o tempo da partida acabar
+         }
+      }
+
+      // Define o resultado (colisao tem prioridade se acontecer junto com o fim do tempo)
+      if (checkCollision()) {
+         let result = 1;
+      } else {
+         if (timergame.isFinished()) {
+            let result = 2;
+         } else {
+            let result = 0;
+         }
+      }
+      return result;
+   }
+}
