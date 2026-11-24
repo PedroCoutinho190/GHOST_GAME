@@ -1,140 +1,47 @@
-/** Implementa o sprite do ghost e suas funcionalidades */
-class Ghost {
+/** Logica de derrota: tela de 'Game Over' e utilitario de texto centralizado */
+class GameOver {
 
-   field int x, y; //* localização do ghost na tela */
-   field int size; //* comprimento do ghost em pixels */
-   field int memAddress;
-   field int direction; //* direção de movimentação do ghost, 0 = parado, 1 = cima, 2 = baixo, 3 = esquerda, 4 = direita */
+   /**
+    * Mostra a tela de Game Over.
+    * result: 1 = fantasma pegou a pessoa, 2 = tempo acabou (pessoa escapou)
+    */
+   function void show(int result) {
+      do Sys.wait(700);               // deixa ver o momento final antes de limpar
+      do Screen.clearScreen();
+      do GameOver.drawFrame();
+      do GameOver.printCentered(5, "G A M E   O V E R");
 
-   //** Construtor do ghost */
-   constructor Ghost new(int Ax, int Ay) {
-      let x = Ax;
-      let y = Ay;
-      let size = 16;
-      let memAddress = 0;
-      let direction = 0;
-      do draw();
-      return this;
-   }
-
-   /** Dispose, tira da memória */
-   method void dispose() {
-      do Memory.deAlloc(this);
-      return;
-   }
-
-   /** Desenha o ghost na tela */
-   method void draw() {
-      do drawHappyGhost(y*32+(x/size));
-      return;
-   }
-
-   /** Apaga o ghost da tela */
-   method void erase() {
-      do Screen.setColor(false);
-      do Screen.drawRectangle(x, y, x + size - 1, y + size - 1);
-      return;
-   }
-
-   method void drawHappyGhost(int location) {
-      let memAddress = 16384+location;
-      do Memory.poke(memAddress+0, 8184);
-      do Memory.poke(memAddress+32, 16380);
-      do Memory.poke(memAddress+64, 25542);
-      do Memory.poke(memAddress+96, -1);
-      do Memory.poke(memAddress+128, -2065);
-      do Memory.poke(memAddress+160, -7225);
-      do Memory.poke(memAddress+192, -7225);
-      do Memory.poke(memAddress+224, -2065);
-      do Memory.poke(memAddress+256, -1);
-      do Memory.poke(memAddress+288, -1);
-      do Memory.poke(memAddress+320, -1);
-      do Memory.poke(memAddress+352, -4081);
-      do Memory.poke(memAddress+384, -2017);
-      do Memory.poke(memAddress+416, -961);
-      do Memory.poke(memAddress+448, -1);
-      do Memory.poke(memAddress+480, -1);
-      return;
-   }
-
-   //** Getters de posição e tamanho do ghost */
-   method int getX() {
-      return x;
-   }
-
-   method int getY() {
-      return y;
-   }
-   
-   method int getSize() {
-      return size;
-   }
-
-   //** Getter e setter de direção do ghost */
-   method void setDirection(int dir) {
-      let direction = dir;
-      return;
-   }
-
-   method int getDirection() {
-      return direction;
-   }
-
-
-   //** Move o ghost de acordo com a direção */
-   method void move() {
-      if (direction = 1) {
-         do moveUp();
+      if (result = 1) {
+         do GameOver.printCentered(8, "O fantasma pegou a pessoa!");
+         do GameOver.printCentered(10, "Vencedor: Jogador 1 (Fantasma)");
       }
-      if (direction = 2) {
-         do moveDown();
-      }
-      if (direction = 3) {
-         do moveLeft();
-      }
-      if (direction = 4) {
-         do moveRight();
+      if (result = 2) {
+         do GameOver.printCentered(8, "O tempo acabou! A pessoa escapou!");
+         do GameOver.printCentered(10, "Vencedor: Jogador 2 (Pessoa)");
       }
       return;
    }
 
-   /** Move o ghost para cima em 16 pixels. */
-   method void moveUp() {
-      if (y > 31) {
-         do erase();
-         let y = y - 16;
-         do draw();
-      }
+   /** Desenha uma moldura (linhas de 2 pixels) em volta da tela de Game Over */
+   function void drawFrame() {
+      do Screen.setColor(true);
+      do Screen.drawRectangle(64, 33, 447, 34);     // topo
+      do Screen.drawRectangle(64, 197, 447, 198);   // base
+      do Screen.drawRectangle(64, 33, 65, 198);     // esquerda
+      do Screen.drawRectangle(446, 33, 447, 198);   // direita
       return;
    }
 
-   /** Move o ghost para baixo em 16 pixels. */
-   method void moveDown() {
-      if ((y + size) < 239) {
-         do erase();
-         let y = y + 16;
-         do draw();
-      }
-      return;
-   }
-
-   /** Move o ghost para a esquerda em 16 pixels. */
-   method void moveLeft() {
-      if (x > 15) {
-         do erase();
-         let x = x - 16;
-         do draw();
-      }
-      return;
-   }
-
-   /** Move o ghost para a direita em 16 pixels. */
-   method void moveRight() {
-      if ((x + size) < 495) {
-         do erase();
-         let x = x + 16;
-         do draw();
-      }
+   /**
+    * Imprime o texto centralizado na linha informada (tela de texto: 23 linhas x 64 colunas).
+    * Usar SOMENTE com literais de string: a string e liberada da memoria no final.
+    */
+   function void printCentered(int row, String s) {
+      var int col;
+      let col = (64 - s.length()) / 2;
+      do Output.moveCursor(row, col);
+      do Output.printString(s);
+      do s.dispose();
       return;
    }
 }
