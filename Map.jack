@@ -1,89 +1,98 @@
-// https://github.com/xctom/Nand2Tetris/blob/master/projects/09/PigDice/Random.jack
-
 /**
-Reference: http://nand2tetris-questions-and-answers-forum.32033.n3.nabble.com/Random-number-generator-for-hack-cpu-td4025503.html#a4025511
+ * Map: o MAPA do jogo (paredes, corredores e labirinto).
+ * Grade de 32 colunas x 15 linhas, cada celula com 16x16 pixels.
+ * A primeira faixa da tela (y = 0..15) fica reservada para o HUD (relogios).
+ * '#' = parede, '.' = chao livre.
+ */
+class Map {
+    field Array rows;   // 15 Strings de 32 caracteres
+    field int numCols, numRows;
 
-There is no random generator in Jack
-So we need to generate pseudo random number by ourself
-This class is quite simple random number generator
-
-Improvement: let the number be more random by adding shift number
-**/
-
-class Random {
-    field int seed; //random seed
-    field int calledTime;
-
-    constructor Random new(int seedIn) {
-
-        let seed = seedIn;
-        let seed = rand();
-        let calledTime = 0;
-
+    constructor Map new() {
+        let numCols = 32;
+        let numRows = 15;
+        let rows = Array.new(15);
+        do buildMap();
         return this;
     }
 
-    method int rand() {
-        /** return a random number in the range 0..32767 */
-
-        let seed = seed + 20251;
-
-        if (seed < 0) {
-            let seed = seed - 32767 - 1;
-        }
-
-        return seed;
+    /** Monta o mapa fixo. Todo chao e alcancavel a partir de qualquer outro chao. */
+    method void buildMap() {
+        let rows[0]  = "################################";
+        let rows[1]  = "#..............................#";
+        let rows[2]  = "#.#####.#######.######.#######.#";
+        let rows[3]  = "#.#####.#######.######.#######.#";
+        let rows[4]  = "#..............................#";
+        let rows[5]  = "#.######.#####.########.######.#";
+        let rows[6]  = "#.######.#####.########.######.#";
+        let rows[7]  = "#.........#..........#.........#";
+        let rows[8]  = "#.####.########.#####.########.#";
+        let rows[9]  = "#.####.########.#####.########.#";
+        let rows[10] = "#..............................#";
+        let rows[11] = "#.#####.#######.######.#######.#";
+        let rows[12] = "#.#####.#######.######.#######.#";
+        let rows[13] = "#..............................#";
+        let rows[14] = "################################";
+        return;
     }
 
-    method int randRange(int range) {
-        /** return a random number in the range 0..range */
-        var int mask;
-        var int ret;
+    /** Limpa a tela e desenha as paredes (agrupa paredes seguidas numa linha so, para ser rapido). */
+    method void draw() {
+        var int r, c, start;
+        var boolean more;
+        var String line;
 
-        let mask = 1;
-        while (mask < range) {
-            let mask = mask * 2 + 1;
+        do Screen.clearScreen();
+        do Screen.setColor(true);
+        let r = 0;
+        while (r < numRows) {
+            let line = rows[r];
+            let c = 0;
+            while (c < numCols) {
+                if (line.charAt(c) = 35) {          // 35 = '#'
+                    let start = c;
+                    let more = true;
+                    while (more) {                  // avanca ate o fim da sequencia de paredes
+                        let c = c + 1;
+                        if (c = numCols) {
+                            let more = false;
+                        } else {
+                            if (~(line.charAt(c) = 35)) { let more = false; }
+                        }
+                    }
+                    do Screen.drawRectangle(start * 16, 16 + (r * 16), (c * 16) - 1, (16 + (r * 16)) + 15);
+                } else {
+                    let c = c + 1;
+                }
+            }
+            let r = r + 1;
         }
-
-        let ret = rand() & mask;
-        let calledTime = calledTime + 1;
-
-        while (ret > range) {
-            let ret = rand() & mask;
-            let calledTime = calledTime + 1;
-            let ret = ret & getShift();
-        }
-
-        return ret;
+        return;
     }
 
-    //get new shift number according to called times
-    method int getShift() {
-        var int temp;
-
-        let calledTime = calledTime + 1;
-        let temp = calledTime;
-        
-        while(temp > 9){
-
-            let temp = temp - 9;
-
-        }
-
-        return temp;
+    /** true se a celula (col,row) e parede ou esta fora do mapa. */
+    method boolean isWall(int col, int row) {
+        var String line;
+        if ((col < 0) | (~(col < numCols))) { return true; }
+        if ((row < 0) | (~(row < numRows))) { return true; }
+        let line = rows[row];
+        return (line.charAt(col) = 35);
     }
 
-    //dispose the Oject
-    method void dispose(){
+    method int getCols() { return numCols; }
+    method int getRows() { return numRows; }
+
+    method void dispose() {
+        var int i;
+        var String line;
+        let i = 0;
+        while (i < numRows) {
+            let line = rows[i];
+            do line.dispose();
+            let i = i + 1;
+        }
+        do rows.dispose();
         do Memory.deAlloc(this);
         return;
     }
-
-    method void addCallTime(int times){
-
-        let calledTime = calledTime + times;
-        return;
-
-    }
-
 }

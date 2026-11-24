@@ -1,14 +1,13 @@
+/** Implementa o sprite do ghost e suas funcionalidades */
+class Ghost {
 
-/** Implementa o sprite do player e suas funcionalidades */
-class Player {
-
-   field int x, y; //* localização do player na tela */
-   field int size; //* comprimento do player em pixels */
+   field int x, y; //* localização do ghost na tela */
+   field int size; //* comprimento do ghost em pixels */
    field int memAddress;
-   field int direction; //* direção de movimentação do player, 0 = parado, 1 = cima, 2 = baixo, 3 = esquerda, 4 = direita */
-   
-   //** Construtor do player */
-   constructor Player new(int Ax, int Ay) {
+   field int direction; //* direção de movimentação do ghost, 0 = parado, 1 = cima, 2 = baixo, 3 = esquerda, 4 = direita */
+
+   //** Construtor do ghost */
+   constructor Ghost new(int Ax, int Ay) {
       let x = Ax;
       let y = Ay;
       let size = 16;
@@ -24,42 +23,41 @@ class Player {
       return;
    }
 
-   /** Desenha o player na tela */
+   /** Desenha o ghost na tela */
    method void draw() {
-      do drawPerson(y * 32 + (x / size));
+      do drawHappyGhost(y*32+(x/size));
       return;
    }
 
-   /** Apaga o player da tela */
+   /** Apaga o ghost da tela */
    method void erase() {
       do Screen.setColor(false);
       do Screen.drawRectangle(x, y, x + size - 1, y + size - 1);
       return;
    }
 
-   /** Desenha o sprite da pessoa na memória */
-   method void drawPerson(int location) {
-      let memAddress = 16384 + location;
-      do Memory.poke(memAddress + 0, 960);
-      do Memory.poke(memAddress + 32, 2016);
-      do Memory.poke(memAddress + 64, 2016);
-      do Memory.poke(memAddress + 96, 960);
-      do Memory.poke(memAddress + 128, 384);
-      do Memory.poke(memAddress + 160, 4080);
-      do Memory.poke(memAddress + 192, 8184);
-      do Memory.poke(memAddress + 224, 6528);
-      do Memory.poke(memAddress + 256, 384);
-      do Memory.poke(memAddress + 288, 384);
-      do Memory.poke(memAddress + 320, 960);
-      do Memory.poke(memAddress + 352, 1632);
-      do Memory.poke(memAddress + 384, 3120);
-      do Memory.poke(memAddress + 416, 6168);
-      do Memory.poke(memAddress + 448, 6168);
-      do Memory.poke(memAddress + 480, 14364);
+   method void drawHappyGhost(int location) {
+      let memAddress = 16384+location;
+      do Memory.poke(memAddress+0, 8184);
+      do Memory.poke(memAddress+32, 16380);
+      do Memory.poke(memAddress+64, 25542);
+      do Memory.poke(memAddress+96, -1);
+      do Memory.poke(memAddress+128, -2065);
+      do Memory.poke(memAddress+160, -7225);
+      do Memory.poke(memAddress+192, -7225);
+      do Memory.poke(memAddress+224, -2065);
+      do Memory.poke(memAddress+256, -1);
+      do Memory.poke(memAddress+288, -1);
+      do Memory.poke(memAddress+320, -1);
+      do Memory.poke(memAddress+352, -4081);
+      do Memory.poke(memAddress+384, -2017);
+      do Memory.poke(memAddress+416, -961);
+      do Memory.poke(memAddress+448, -1);
+      do Memory.poke(memAddress+480, -1);
       return;
    }
 
-   //** Getters de posição e tamanho do player */
+   //** Getters de posição e tamanho do ghost */
    method int getX() {
       return x;
    }
@@ -72,7 +70,7 @@ class Player {
       return size;
    }
 
-   //** Getter e setter de direção do player */
+   //** Getter e setter de direção do ghost */
    method void setDirection(int dir) {
       let direction = dir;
       return;
@@ -83,7 +81,7 @@ class Player {
    }
 
 
-   //** Move o player de acordo com a direção */
+   //** Move o ghost de acordo com a direção */
    method void move() {
       if (direction = 1) {
          do moveUp();
@@ -100,7 +98,7 @@ class Player {
       return;
    }
 
-   /** Move o player para cima em 16 pixels. */
+   /** Move o ghost para cima em 16 pixels. */
    method void moveUp() {
       if (y > 31) {
          do erase();
@@ -110,7 +108,7 @@ class Player {
       return;
    }
 
-   /** Move o player para baixo em 16 pixels. */
+   /** Move o ghost para baixo em 16 pixels. */
    method void moveDown() {
       if ((y + size) < 239) {
          do erase();
@@ -120,7 +118,7 @@ class Player {
       return;
    }
 
-   /** Move o player para a esquerda em 16 pixels. */
+   /** Move o ghost para a esquerda em 16 pixels. */
    method void moveLeft() {
       if (x > 15) {
          do erase();
@@ -130,7 +128,7 @@ class Player {
       return;
    }
 
-   /** Move o player para a direita em 16 pixels. */
+   /** Move o ghost para a direita em 16 pixels. */
    method void moveRight() {
       if ((x + size) < 495) {
          do erase();

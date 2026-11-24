@@ -1,61 +1,28 @@
-/** Implementa os relógios regressivos do jogo */
-class Timer {
-    field int seconds;        // segundos restantes na contagem
-    field int ticks;          // contador de ciclos do loop principal
-    field int ticksPerSecond; // quantidade de ciclos equivalente a 1 segundo real
-    field int row, col;       // linha (0..22) e coluna (0..63) do cursor na tela
+/** Controla o ciclo do programa: instrucoes -> partida -> Game Over -> reiniciar ou sair */
+class Main {
+    function void main() {
+        var GhostGame game;
+        var int result;           // 0 = ESC, 1 = fantasma venceu, 2 = pessoa venceu
+        var boolean playAgain;
 
-    /** construtor do relógio: define tempo inicial, taxa de atualização e posição */
-    constructor Timer new(int startSeconds, int waitMs, int displayRow, int displayCol) {
-        let seconds = startSeconds;
-        let ticks = 0;
-        let row = displayRow;
-        let col = displayCol;
-        // converte o tempo de espera do loop para ticks por segundo
-        let ticksPerSecond = 1000 / waitMs;
-        do draw();
-        return this;
-    }
+        do InitPlayers.showControls();
 
-    /** atualiza a contagem a cada ciclo do loop e decrementa 1s ao atingir ticksPerSecond */
-    method void tick() {
-        if (seconds > 0) {
-            let ticks = ticks + 1;
-            // Quando a variável acumula ciclos suficientes para 1 segundo, atualiza o timer
-            if (~(ticks < ticksPerSecond)) {
-                let seconds = seconds - 1;
-                let ticks = 0;
-                do draw();
+        let playAgain = true;
+        while (playAgain) {
+            do Screen.clearScreen();
+            let game = GhostGame.new();   // recria jogadores, relogios e obstaculos do zero
+            let result = game.run();
+            do game.dispose();            // libera a memoria antes de reiniciar
+
+            if (result = 0) {
+                let playAgain = false;    // ESC durante a partida: finaliza direto
+            } else {
+                do GameOver.show(result);
+                let playAgain = Restart.ask();
             }
         }
-        return;
-    }
 
-    /** exibe o tempo restante na grade de texto do topo da tela */
-    method void draw() {
-        var String label;
-        let label = "Tempo: ";
-        do Output.moveCursor(row, col);
-        do Output.printString(label);
-        do label.dispose();        // libera a string (evita vazamento de memoria a cada segundo)
-        do Output.printInt(seconds);
-        // Imprime um espaco extra para limpar o digito extra ao cair de 10 para 9
-        do Output.printChar(32);
-        return;
-    }
-
-    /** getters para lógica do jogo, como verificar se o tempo acabou, etc */
-
-    method int getSeconds() {
-        return seconds;
-    }
-
-    method boolean isFinished() {
-        return ~(seconds > 0);
-    }
-
-    method void dispose() {
-        do Memory.deAlloc(this);
+        do Restart.finish();
         return;
     }
 }
