@@ -15,7 +15,7 @@ class GhostGame {
       let ghost = InitPlayers.createGhost();
       let player = InitPlayers.createPlayer();
       let timerprep = Timer.new(3, 50, 0, 2);  // 3 segundos de preparacao, atualiza a cada 50ms, linha 0, coluna 2
-      let timergame = Timer.new(7, 50, 0, 25); // 7 segundos de partida, atualiza a cada 50ms, linha 0, coluna 25
+      let timergame = Timer.new(30, 50, 0, 25); // 30 segundos de partida, atualiza a cada 50ms, linha 0, coluna 25
       let random = Random.new(19);
       return this;
    }
@@ -39,11 +39,11 @@ class GhostGame {
       if (key = 133) { do ghost.setDirection(2); }   // seta para baixo
       if (key = 130) { do ghost.setDirection(3); }   // seta para esquerda
       if (key = 132) { do ghost.setDirection(4); }   // seta para direita
-      if (key = 87)  { do player.setDirection(1); }  // tecla 'W' (cima)
-      if (key = 83)  { do player.setDirection(2); }  // tecla 'S' (baixo)
-      if (key = 65)  { do player.setDirection(3); }  // tecla 'A' (esquerda)
-      if (key = 68)  { do player.setDirection(4); }  // tecla 'D' (direita)
-      if (key = 69)  { do player.setDirection(0); }  // tecla 'E' (parar pessoa)
+      if ((key = 87) | (key = 119)) { do player.setDirection(1); } // 'W' ou 'w' (cima)
+      if ((key = 83) | (key = 115)) { do player.setDirection(2); } // 'S' ou 's' (baixo)
+      if ((key = 65) | (key = 97))  { do player.setDirection(3); } // 'A' ou 'a' (esquerda)
+      if ((key = 68) | (key = 100)) { do player.setDirection(4); } // 'D' ou 'd' (direita)
+      if ((key = 69) | (key = 101)) { do player.setDirection(0); } // 'E' ou 'e' (parar pessoa)
       return;
    }
 
